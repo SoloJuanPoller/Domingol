@@ -30,7 +30,7 @@ export default function HomePage() {
         {/* Welcome */}
         <motion.div variants={container} initial="hidden" animate="show">
           <motion.div variants={item} className="mb-6">
-            <p className="text-secondary text-sm font-medium">Bienvenido 👋</p>
+            <p className="text-secondary text-sm font-medium">Bienvenido</p>
             <h1 className="text-3xl font-black text-primary mt-0.5 tracking-tight">
               ¿Listos para el partido?
             </h1>
