@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, RefreshCw, Share2, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Share2, AlertTriangle, ArrowLeftRight } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { PlayerCard } from '@/components/player/PlayerCard'
 import { Button } from '@/components/ui/Button'
@@ -9,9 +9,10 @@ import { usePlayersStore } from '@/store/usePlayersStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { generateOptimalTeams, shuffleArray } from '@/utils/teamAlgorithm'
 import { getBalanceLabel } from '@/utils/cardUtils'
-import type { GeneratedTeams } from '@/types'
+import type { GeneratedTeams, Player } from '@/types'
 
 type Stage = 'idle' | 'shuffling' | 'sorting' | 'revealed'
+type SwapSelection = { player: Player; team: 'A' | 'B' } | null
 
 export default function GenerateTeamsPage() {
   const navigate = useNavigate()
@@ -21,6 +22,7 @@ export default function GenerateTeamsPage() {
   const [teams, setTeams] = useState<GeneratedTeams | null>(null)
   const [shuffled, setShuffled] = useState<typeof players>([])
   const [counter, setCounter] = useState(0)
+  const [swapSelection, setSwapSelection] = useState<SwapSelection>(null)
 
   const selected = players.filter(p => selectedPlayerIds.has(p.id))
 
@@ -75,7 +77,45 @@ export default function GenerateTeamsPage() {
     setStage('idle')
     setTeams(null)
     setCounter(0)
+    setSwapSelection(null)
     setTimeout(startAnimation, 100)
+  }
+
+  function handlePlayerTap(player: Player, team: 'A' | 'B') {
+    if (!swapSelection) {
+      setSwapSelection({ player, team })
+      return
+    }
+    if (swapSelection.team === team) {
+      setSwapSelection({ player, team })
+      return
+    }
+    if (!teams) return
+
+    const [fromA, fromB] = team === 'B'
+      ? [swapSelection.player, player]
+      : [player, swapSelection.player]
+
+    const newTeamA = teams.teamA.players.map(p => p.id === fromA.id ? fromB : p)
+    const newTeamB = teams.teamB.players.map(p => p.id === fromB.id ? fromA : p)
+    const totalA = newTeamA.reduce((s, p) => s + p.rating, 0)
+    const totalB = newTeamB.reduce((s, p) => s + p.rating, 0)
+    const avgA = Math.round(totalA / newTeamA.length)
+    const avgB = Math.round(totalB / newTeamB.length)
+    const max = Math.max(totalA, totalB)
+    const min = Math.min(totalA, totalB)
+    const balance = max > 0 ? Math.round((min / max) * 10000) / 100 : 100
+
+    const newTeams: GeneratedTeams = {
+      teamA: { players: newTeamA, totalRating: totalA, avgRating: avgA },
+      teamB: { players: newTeamB, totalRating: totalB, avgRating: avgB },
+      balance,
+      diff: Math.abs(totalA - totalB),
+    }
+    setTeams(newTeams)
+    setGeneratedTeams(newTeams)
+    setCounter(balance)
+    setSwapSelection(null)
   }
 
   const balanceInfo = teams ? getBalanceLabel(teams.balance) : null
@@ -189,23 +229,46 @@ export default function GenerateTeamsPage() {
                 )}
               </AnimatePresence>
 
+              {/* Swap hint */}
+              <AnimatePresence>
+                {swapSelection && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className="flex items-center justify-center gap-2 mb-4 py-2 px-4 rounded-2xl bg-yellow-400/10 border border-yellow-400/30"
+                  >
+                    <ArrowLeftRight size={13} className="text-yellow-400" />
+                    <p className="text-xs text-yellow-400 font-medium">
+                      Tocá un jugador del equipo contrario
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Teams */}
+              <LayoutGroup id="swap-group">
               <div className="grid grid-cols-2 gap-4">
-                {/* Team A */}
                 <TeamColumn
                   label="Equipo Azul"
                   color="blue"
                   team={teams.teamA}
+                  teamKey="A"
                   delay={0}
+                  swapSelection={swapSelection}
+                  onPlayerTap={handlePlayerTap}
                 />
-                {/* Team B */}
                 <TeamColumn
                   label="Equipo Rojo"
                   color="red"
                   team={teams.teamB}
+                  teamKey="B"
                   delay={0.1}
+                  swapSelection={swapSelection}
+                  onPlayerTap={handlePlayerTap}
                 />
               </div>
+              </LayoutGroup>
 
               {/* Actions */}
               <div className="flex gap-3 mt-6 pb-4">
@@ -238,12 +301,18 @@ function TeamColumn({
   label,
   color,
   team,
+  teamKey,
   delay,
+  swapSelection,
+  onPlayerTap,
 }: {
   label: string
   color: 'blue' | 'red'
   team: import('@/types').Team
+  teamKey: 'A' | 'B'
   delay: number
+  swapSelection: SwapSelection
+  onPlayerTap: (player: Player, team: 'A' | 'B') => void
 }) {
   const isBlue = color === 'blue'
   const headerBg = isBlue ? 'bg-blue-500/10 border-blue-500/20' : 'bg-red-500/10 border-red-500/20'
@@ -251,6 +320,8 @@ function TeamColumn({
   const glow = isBlue
     ? '0 0 30px rgba(59,130,246,0.2)'
     : '0 0 30px rgba(239,68,68,0.2)'
+
+  const isEnemyTeam = swapSelection !== null && swapSelection.team !== teamKey
 
   return (
     <motion.div
@@ -266,16 +337,56 @@ function TeamColumn({
 
       {/* Players */}
       <div className="flex flex-col gap-2 items-center">
-        {team.players.map((player, i) => (
-          <motion.div
-            key={player.id}
-            initial={{ opacity: 0, x: isBlue ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: delay + 0.1 + i * 0.06, type: 'spring', stiffness: 350, damping: 28 }}
-          >
-            <PlayerCard player={player} size="sm" />
-          </motion.div>
-        ))}
+        {team.players.map((player, i) => {
+          const isSelected = swapSelection?.player.id === player.id
+          const isTarget = isEnemyTeam
+
+          return (
+            <motion.div
+              key={player.id}
+              layoutId={`card-${player.id}`}
+              initial={{ opacity: 0, x: isBlue ? -20 : 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{
+                opacity: { delay: delay + 0.1 + i * 0.06, duration: 0.25 },
+                x: { delay: delay + 0.1 + i * 0.06, type: 'spring', stiffness: 350, damping: 28 },
+                layout: { type: 'spring', stiffness: 320, damping: 28 },
+              }}
+              className="relative"
+            >
+              <motion.div
+                animate={isTarget ? { scale: [1, 1.03, 1] } : {}}
+                transition={{ repeat: Infinity, duration: 1.2 }}
+                onClick={() => onPlayerTap(player, teamKey)}
+                className="cursor-pointer"
+                style={{
+                  borderRadius: 16,
+                  outline: isSelected
+                    ? '2.5px solid #FACC15'
+                    : isTarget
+                    ? '2px dashed rgba(250,204,21,0.5)'
+                    : 'none',
+                  boxShadow: isSelected
+                    ? '0 0 18px rgba(250,204,21,0.55)'
+                    : undefined,
+                }}
+              >
+                <PlayerCard player={player} size="sm" />
+              </motion.div>
+
+              {/* Icono de swap sobre el jugador seleccionado */}
+              {isSelected && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center z-50 shadow-md"
+                >
+                  <ArrowLeftRight size={10} className="text-black" />
+                </motion.div>
+              )}
+            </motion.div>
+          )
+        })}
       </div>
 
       {/* Total */}
