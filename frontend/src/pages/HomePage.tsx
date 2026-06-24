@@ -79,19 +79,14 @@ export default function HomePage() {
               onClick={() => navigate('/match')}
               className="relative w-full py-6 rounded-3xl overflow-hidden text-white font-black text-xl tracking-tight"
               style={{
-                background: 'linear-gradient(135deg, #4F7FFF 0%, #7B5CF6 50%, #4F7FFF 100%)',
-                backgroundSize: '200% 100%',
-                animation: 'shimmer 3s linear infinite',
-                boxShadow: '0 8px 32px rgba(79,127,255,0.4), 0 2px 8px rgba(79,127,255,0.2)',
+                background: 'linear-gradient(160deg, #5A8AFF 0%, #3A68F0 100%)',
+                boxShadow: '0 8px 32px rgba(79,127,255,0.35), 0 2px 8px rgba(79,127,255,0.15)',
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
-              <div className="flex flex-col items-center gap-1 relative z-10">
-                <div className="flex items-center gap-3">
-                  <Zap size={24} className="fill-white" />
-                  <span>Generar Equipos</span>
-                </div>
-                <span className="text-white/70 text-sm font-medium">Algoritmo inteligente</span>
+              <div className="flex items-center gap-3 relative z-10">
+                <Zap size={24} className="fill-white" />
+                <span>Generar Equipos</span>
               </div>
             </motion.button>
           </motion.div>
