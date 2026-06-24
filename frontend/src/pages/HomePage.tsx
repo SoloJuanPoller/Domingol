@@ -103,7 +103,7 @@ export default function HomePage() {
                 <h2 className="text-base font-bold text-primary">Últimos partidos</h2>
                 <button
                   onClick={() => navigate('/history')}
-                  className="text-xs text-brand flex items-center gap-0.5"
+                  className="text-xs text-brand flex items-center gap-0.5 py-3 px-1 -my-3 -mx-1"
                 >
                   Ver todos <ChevronRight size={14} />
                 </button>
