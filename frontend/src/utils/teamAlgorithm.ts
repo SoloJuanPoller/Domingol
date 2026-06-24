@@ -1,5 +1,7 @@
 import type { Player, GeneratedTeams, Team } from '@/types'
 
+const ELITE_THRESHOLD = 90
+
 function buildTeam(players: Player[]): Team {
   const totalRating = players.reduce((sum, p) => sum + p.rating, 0)
   return {
@@ -28,14 +30,22 @@ export function generateOptimalTeams(players: Player[]): GeneratedTeams {
   const n = players.length
   const halfA = Math.floor(n / 2)
   const totalRating = players.reduce((sum, p) => sum + p.rating, 0)
+  const totalElites = players.filter(p => p.rating >= ELITE_THRESHOLD).length
+
+  // Only enforce the split when there are exactly 2 elites: each team must get one.
+  // With 3+ elites it's unavoidable that one team gets 2, so no constraint is applied.
+  const enforceEliteSplit = totalElites === 2
 
   let bestDiff = Infinity
   let bestTeamAPlayers: Player[] = []
   let bestTeamBPlayers: Player[] = []
 
-  const allCombos = combinations(players, halfA)
+  // Tracks the best valid combo (elites split 1/1) separately.
+  let bestValidDiff = Infinity
+  let bestValidA: Player[] | null = null
+  let bestValidB: Player[] | null = null
 
-  for (const teamAPlayers of allCombos) {
+  for (const teamAPlayers of combinations(players, halfA)) {
     const teamAIds = new Set(teamAPlayers.map(p => p.id))
     const teamBPlayers = players.filter(p => !teamAIds.has(p.id))
 
@@ -49,18 +59,32 @@ export function generateOptimalTeams(players: Player[]): GeneratedTeams {
       bestTeamBPlayers = teamBPlayers
     }
 
-    if (diff === 0) break
+    if (enforceEliteSplit) {
+      const elitesInA = teamAPlayers.filter(p => p.rating >= ELITE_THRESHOLD).length
+      // elitesInA === 1 implies elitesInB === 1 when totalElites === 2
+      if (elitesInA === 1 && diff < bestValidDiff) {
+        bestValidDiff = diff
+        bestValidA = teamAPlayers
+        bestValidB = teamBPlayers
+      }
+    }
+
+    if (diff === 0 && (!enforceEliteSplit || bestValidA)) break
   }
 
+  const finalA = enforceEliteSplit && bestValidA ? bestValidA : bestTeamAPlayers
+  const finalB = enforceEliteSplit && bestValidB ? bestValidB : bestTeamBPlayers
+  const finalDiff = enforceEliteSplit && bestValidA ? bestValidDiff : bestDiff
+
   const balance = totalRating > 0
-    ? Math.round((1 - bestDiff / totalRating) * 10000) / 100
+    ? Math.round((1 - finalDiff / totalRating) * 10000) / 100
     : 100
 
   return {
-    teamA: buildTeam(bestTeamAPlayers),
-    teamB: buildTeam(bestTeamBPlayers),
+    teamA: buildTeam(finalA),
+    teamB: buildTeam(finalB),
     balance,
-    diff: bestDiff,
+    diff: finalDiff,
   }
 }
 
