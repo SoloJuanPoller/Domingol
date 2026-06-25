@@ -9,6 +9,7 @@ interface PlayersState {
   addPlayer: (player: Omit<Player, 'id' | 'createdAt' | 'stats'>) => void
   updatePlayer: (id: string, updates: Partial<Player>) => void
   deletePlayer: (id: string) => void
+  importPlayers: (incoming: Player[]) => void
 }
 
 export const usePlayersStore = create<PlayersState>()(
@@ -41,6 +42,8 @@ export const usePlayersStore = create<PlayersState>()(
       deletePlayer: (id) => set((state) => ({
         players: state.players.filter(p => p.id !== id),
       })),
+
+      importPlayers: (incoming) => set({ players: incoming }),
     }),
     { name: 'matchmaker-players', storage: idbStorage }
   )

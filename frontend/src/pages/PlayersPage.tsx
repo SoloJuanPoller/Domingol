@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Plus, Search, SlidersHorizontal } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Plus, Search, SlidersHorizontal, Download, FileUp } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { PlayerCard } from '@/components/player/PlayerCard'
 import { PlayerCardDetail } from '@/components/player/PlayerCardDetail'
@@ -21,13 +21,15 @@ const cardItem = {
 }
 
 export default function PlayersPage() {
-  const { players, deletePlayer } = usePlayersStore()
+  const { players, deletePlayer, importPlayers } = usePlayersStore()
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState<SortKey>('rating')
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null)
   const [addOpen, setAddOpen] = useState(false)
   const [editPlayer, setEditPlayer] = useState<Player | undefined>()
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [importPreview, setImportPreview] = useState<Player[] | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const filtered = players
     .filter(p =>
@@ -60,21 +62,82 @@ export default function PlayersPage() {
     }
   }
 
+  function handleExport() {
+    const payload = JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), players }, null, 2)
+    const blob = new Blob([payload], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `domingol-${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const raw = JSON.parse(ev.target?.result as string)
+        const incoming: Player[] = Array.isArray(raw) ? raw : raw.players
+        if (!Array.isArray(incoming) || incoming.length === 0) throw new Error()
+        setImportPreview(incoming)
+      } catch {
+        alert('Archivo inválido. Usá un archivo exportado desde Domingol.')
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  function confirmImport() {
+    if (importPreview) {
+      importPlayers(importPreview)
+      setImportPreview(null)
+    }
+  }
+
   return (
     <div>
       <TopBar
         title="Jugadores"
         subtitle={`${players.length} registrados`}
         right={
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<Plus size={14} />}
-            onClick={() => { setEditPlayer(undefined); setAddOpen(true) }}
-          >
-            Agregar
-          </Button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExport}
+              title="Exportar jugadores"
+              className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center text-secondary hover:text-primary transition-colors"
+            >
+              <Download size={16} />
+            </button>
+            <button
+              onClick={() => fileRef.current?.click()}
+              title="Importar jugadores"
+              className="w-9 h-9 rounded-full bg-surface-elevated flex items-center justify-center text-secondary hover:text-primary transition-colors"
+            >
+              <FileUp size={16} />
+            </button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus size={14} />}
+              onClick={() => { setEditPlayer(undefined); setAddOpen(true) }}
+            >
+              Agregar
+            </Button>
+          </div>
         }
+      />
+
+      {/* Hidden file input for import */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleImportFile}
       />
 
       <div className="px-5 pt-5">
@@ -175,6 +238,49 @@ export default function PlayersPage() {
           </motion.div>
         </div>
       )}
+
+      {/* Import confirm */}
+      <AnimatePresence>
+        {importPreview && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setImportPreview(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              className="relative z-10 w-full max-w-sm bg-surface-elevated rounded-3xl p-6 shadow-surface-xl border border-surface"
+            >
+              <h3 className="text-base font-bold text-primary mb-1">Importar jugadores</h3>
+              <p className="text-sm text-secondary mb-1">
+                Se encontraron <span className="text-primary font-bold">{importPreview.length} jugadores</span> en el archivo.
+              </p>
+              <p className="text-xs text-tertiary mb-5">
+                Esto reemplazará los {players.length} jugadores actuales. Las fotos están incluidas en el archivo.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setImportPreview(null)}
+                  className="flex-1 py-3 rounded-2xl bg-surface text-secondary font-semibold text-sm"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmImport}
+                  className="flex-1 py-3 rounded-2xl bg-brand text-white font-semibold text-sm"
+                >
+                  Importar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Add / Edit modal */}
       <AddPlayerModal
