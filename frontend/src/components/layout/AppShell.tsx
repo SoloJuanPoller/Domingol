@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BottomNav } from './BottomNav'
+import { APP_VERSION } from '@/version'
 
 export function AppShell() {
   const location = useLocation()
@@ -15,6 +16,9 @@ export function AppShell() {
         className="flex-1 pb-24 max-w-lg mx-auto w-full"
       >
         <Outlet />
+        <p className="text-center text-[10px] text-tertiary/40 pb-2 select-none">
+          Domingol {APP_VERSION}
+        </p>
       </motion.main>
       <BottomNav />
     </div>
