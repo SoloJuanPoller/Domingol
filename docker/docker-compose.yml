@@ -1,8 +1,8 @@
 services:
   web:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: ../frontend
+      dockerfile: ../docker/Dockerfile
     ports:
       - "80:80"
     volumes:

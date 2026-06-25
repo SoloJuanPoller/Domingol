@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(ssh -T git@github.com)",
+      "Read(//c/Users/jdgarcia/.ssh/**)",
+      "Bash(ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null && ssh -T git@github.com 2>&1)",
+      "Bash(npx tsc *)",
+      "Bash(git commit *)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('scripts:', list\\(d.get\\('scripts',{}\\).keys\\(\\)\\)\\); print\\('node engines:', d.get\\('engines',{}\\)\\)\")",
+      "Bash(move \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\nginx.conf\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\nginx.conf\")",
+      "Bash(move \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker-compose.yml\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\docker-compose.yml\")",
+      "Bash(move \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\frontend\\\\Dockerfile\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\Dockerfile\")",
+      "Bash(move \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\frontend\\\\.dockerignore\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\.dockerignore\")",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\" -Force)",
+      "PowerShell(Move-Item \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\nginx.conf\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\nginx.conf\")",
+      "PowerShell(Move-Item \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker-compose.yml\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\docker-compose.yml\")",
+      "PowerShell(Move-Item \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\frontend\\\\Dockerfile\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\Dockerfile\")",
+      "PowerShell(Move-Item \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\frontend\\\\.dockerignore\" \"C:\\\\Users\\\\jdgarcia\\\\Desktop\\\\Domingol\\\\docker\\\\.dockerignore\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\jdgarcia\\.ssh"
+    ]
+  }
+}
