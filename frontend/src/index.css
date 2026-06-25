@@ -170,6 +170,16 @@ body {
   }
 }
 
+/* ── Elite card glow (95+) ───────────────────────────────────── */
+@keyframes elite-pulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.45)) drop-shadow(0 0 14px rgba(255, 165, 0, 0.2)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(255, 215, 0, 0.75)) drop-shadow(0 0 28px rgba(255, 165, 0, 0.4)); }
+}
+
+.elite-glow {
+  animation: elite-pulse 2.8s ease-in-out infinite;
+}
+
 /* ── Card Grade Colors ───────────────────────────────────────── */
 .grade-special { background-image: linear-gradient(155deg, #7B5800 0%, #C8960C 18%, #FFD700 42%, #FFF8C0 52%, #DAA520 75%, #8B6914 100%); }
 .grade-gold    { background-image: linear-gradient(155deg, #5A4200 0%, #8B6914 18%, #C8A030 42%, #E8C060 52%, #B89020 75%, #6B5010 100%); }

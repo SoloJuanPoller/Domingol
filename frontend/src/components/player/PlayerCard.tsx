@@ -84,7 +84,7 @@ export function PlayerCard({
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={handleClick}
-      className={clsx('relative cursor-pointer select-none flex-shrink-0', s.card, className)}
+      className={clsx('relative cursor-pointer select-none flex-shrink-0', s.card, className, player.rating >= 95 && 'elite-glow')}
     >
       {/* Card body */}
       <div
