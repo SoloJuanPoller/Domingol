@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, X, Upload, Zap, Shield, Wind, Dumbbell, Target } from 'lucide-react'
+import { Camera, X, Upload, Zap, Shield, Wind, Dumbbell, Target, Eye } from 'lucide-react'
 import { Modal } from '@/components/ui/Modal'
 import { PlayerCard } from './PlayerCard'
 import { usePlayersStore } from '@/store/usePlayersStore'
@@ -35,11 +35,12 @@ function initForm(player?: Player) {
     age:      player?.age?.toString() ?? '',
     position: player?.position ?? ('ST' as Position),
     foot:     player?.foot ?? ('right' as Foot),
-    ritmo:    player?.ritmo  ?? 70,
-    pase:     player?.pase   ?? 70,
-    tiro:     player?.tiro   ?? 70,
+    ritmo:    player?.ritmo   ?? 70,
+    pase:     player?.pase    ?? 70,
+    tiro:     player?.tiro    ?? 70,
     fisico:   player?.fisico  ?? 70,
     entrada:  player?.entrada ?? 70,
+    vision:   player?.vision  ?? 70,
     photo:    player?.photo ?? '',
   }
 }
@@ -103,8 +104,9 @@ export function AddPlayerModal({ open, onClose, editPlayer }: Props) {
     }
     const fullData = {
       ...data,
-      fisico: form.fisico,
+      fisico:  form.fisico,
       entrada: form.entrada,
+      vision:  form.vision,
     }
     if (editPlayer) {
       updatePlayer(editPlayer.id, fullData)
@@ -124,11 +126,12 @@ export function AddPlayerModal({ open, onClose, editPlayer }: Props) {
     position: form.position,
     foot: form.foot,
     rating,
-    ritmo: form.ritmo,
-    pase: form.pase,
-    tiro: form.tiro,
-    fisico: form.fisico,
+    ritmo:   form.ritmo,
+    pase:    form.pase,
+    tiro:    form.tiro,
+    fisico:  form.fisico,
     entrada: form.entrada,
+    vision:  form.vision,
     age: form.age ? parseInt(form.age) : undefined,
     photo: form.photo || undefined,
     stats: editPlayer?.stats ?? { matches: 0, wins: 0, losses: 0, draws: 0, goals: 0, assists: 0, mvp: 0 },
@@ -333,6 +336,7 @@ function StatIcon({ name, color }: { name: string; color: string }) {
   if (name === 'target')   return <Target   size={14} style={{ color }} />
   if (name === 'zap')      return <Zap      size={14} style={{ color }} />
   if (name === 'shield')   return <Shield   size={14} style={{ color }} />
+  if (name === 'eye')      return <Eye      size={14} style={{ color }} />
   return <Wind size={14} style={{ color }} />
 }
 

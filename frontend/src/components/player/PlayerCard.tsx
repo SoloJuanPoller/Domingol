@@ -171,7 +171,7 @@ export function PlayerCard({
             {player.nickname ?? player.name.split(' ')[0]}
           </p>
           {/* Atributos por posición */}
-          <div className="flex justify-center gap-2 mt-1">
+          <div className="flex justify-center gap-1.5 mt-1">
             {getPositionStats(player.position).map(({ key, label }) => (
               <div key={key} className="flex flex-col items-center">
                 <span className="text-[8px] font-black leading-none" style={{ color: tc, textShadow: tShadow }}>

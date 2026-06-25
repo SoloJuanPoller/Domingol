@@ -14,13 +14,13 @@ export interface PlayerStats {
   mvp: number
 }
 
-export type StatKey = 'ritmo' | 'pase' | 'tiro' | 'fisico' | 'entrada'
+export type StatKey = 'ritmo' | 'pase' | 'tiro' | 'fisico' | 'entrada' | 'vision'
 
 export interface StatConfig {
   key: StatKey
   label: string
   color: string
-  icon: 'wind' | 'zap' | 'shield' | 'dumbbell' | 'target'
+  icon: 'wind' | 'zap' | 'shield' | 'dumbbell' | 'target' | 'eye'
 }
 
 export interface Player {
@@ -32,13 +32,14 @@ export interface Player {
   foot: Foot
   /** Calculated automatically from the 3 position-specific stats */
   rating: number
-  // Attacker / midfielder stats
+  // Positional stats
   ritmo: number   // 1–99
   pase: number    // 1–99
   tiro: number    // 1–99
-  // Defender stats
   fisico: number  // 1–99
   entrada: number // 1–99
+  // Universal stat
+  vision: number  // 1–99
   photo?: string
   stats: PlayerStats
   createdAt: string

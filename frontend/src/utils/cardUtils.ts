@@ -11,17 +11,21 @@ export function getCardGrade(rating: number): CardGrade {
 const DEFENDER_POSITIONS: Position[] = ['CB', 'LB', 'RB']
 
 export function getPositionStats(position: Position): StatConfig[] {
+  const vision: StatConfig = { key: 'vision', label: 'Visión', color: '#06B6D4', icon: 'eye' }
+
   if (DEFENDER_POSITIONS.includes(position)) {
     return [
       { key: 'fisico',  label: 'Físico',  color: '#10B981', icon: 'dumbbell' },
       { key: 'entrada', label: 'Entrada', color: '#8B5CF6', icon: 'target'   },
       { key: 'ritmo',   label: 'Ritmo',   color: '#F59E0B', icon: 'wind'     },
+      vision,
     ]
   }
   return [
-    { key: 'ritmo', label: 'Ritmo', color: '#F59E0B', icon: 'wind'   },
-    { key: 'pase',  label: 'Pase',  color: '#3B82F6', icon: 'zap'    },
-    { key: 'tiro',  label: 'Tiro',  color: '#EF4444', icon: 'shield' },
+    { key: 'ritmo',  label: 'Ritmo', color: '#F59E0B', icon: 'wind'   },
+    { key: 'pase',   label: 'Pase',  color: '#3B82F6', icon: 'zap'    },
+    { key: 'tiro',   label: 'Tiro',  color: '#EF4444', icon: 'shield' },
+    vision,
   ]
 }
 
@@ -31,11 +35,11 @@ export function calcRating(ritmo: number, pase: number, tiro: number): number {
 
 export function calcRatingForPosition(
   position: Position,
-  stats: { ritmo: number; pase: number; tiro: number; fisico: number; entrada: number },
+  stats: { ritmo: number; pase: number; tiro: number; fisico: number; entrada: number; vision: number },
 ): number {
   const keys = getPositionStats(position).map(s => s.key)
   const values = keys.map(k => stats[k] ?? 70)
-  return Math.round(values.reduce((a, b) => a + b, 0) / 3)
+  return Math.round(values.reduce((a, b) => a + b, 0) / values.length)
 }
 
 export function getCardGradeClass(rating: number): string {
