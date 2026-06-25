@@ -175,7 +175,7 @@ export function PlayerCard({
             <img
               src={player.photo}
               alt={player.name}
-              className="w-full h-full object-cover object-top"
+              className="w-full h-full object-cover object-[center_15%]"
             />
             {/* Top fade — legibilidad del rating/posición */}
             <div
