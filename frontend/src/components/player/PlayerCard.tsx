@@ -14,6 +14,41 @@ import {
 } from '@/utils/cardUtils'
 import { clsx } from 'clsx'
 
+const ELITE_PARTICLES = [
+  { left: '15%', bottom: '8%',  size: 2,   delay: '0s',    dur: '2.8s' },
+  { left: '78%', bottom: '6%',  size: 1.5, delay: '1.0s',  dur: '3.4s' },
+  { left: '48%', bottom: '3%',  size: 2.5, delay: '1.9s',  dur: '2.6s' },
+  { left: '30%', bottom: '18%', size: 1.5, delay: '2.7s',  dur: '3.1s' },
+  { left: '85%', bottom: '16%', size: 2,   delay: '0.6s',  dur: '3.7s' },
+  { left: '62%', bottom: '12%', size: 1,   delay: '2.2s',  dur: '2.9s' },
+] as const
+
+function EliteParticles() {
+  return (
+    <>
+      {ELITE_PARTICLES.map((p, i) => (
+        <span
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            left: p.left,
+            bottom: p.bottom,
+            width: p.size,
+            height: p.size,
+            background: 'radial-gradient(circle, #FFF8A0 0%, #FFD700 60%, transparent 100%)',
+            animationName: 'elite-sparkle',
+            animationDuration: p.dur,
+            animationDelay: p.delay,
+            animationTimingFunction: 'ease-out',
+            animationIterationCount: 'infinite',
+            zIndex: 50,
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
 interface Props {
   player: Player
   selected?: boolean
@@ -187,6 +222,8 @@ export function PlayerCard({
       </div>
 
       {/* Selected badge */}
+      {player.rating >= 95 && <EliteParticles />}
+
       {selected && (
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
