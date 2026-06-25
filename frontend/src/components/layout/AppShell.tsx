@@ -1,10 +1,20 @@
+import { useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { BottomNav } from './BottomNav'
 import { APP_VERSION } from '@/version'
+import { usePlayersStore } from '@/store/usePlayersStore'
+import { useMatchStore } from '@/store/useMatchStore'
 
 export function AppShell() {
   const location = useLocation()
+  const fetchPlayers = usePlayersStore(s => s.fetchPlayers)
+  const fetchMatches = useMatchStore(s => s.fetchMatches)
+
+  useEffect(() => {
+    fetchPlayers()
+    fetchMatches()
+  }, [fetchPlayers, fetchMatches])
 
   return (
     <div className="min-h-dvh bg-surface flex flex-col">
