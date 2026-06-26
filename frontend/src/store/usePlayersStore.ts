@@ -2,6 +2,23 @@ import { create } from 'zustand'
 import type { Player } from '@/types'
 import { apiFetch } from '@/lib/api'
 
+const CACHE_KEY = 'dg:players'
+
+function loadCache(): Player[] {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    return raw ? (JSON.parse(raw) as Player[]) : []
+  } catch {
+    return []
+  }
+}
+
+function saveCache(players: Player[]): void {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(players))
+  } catch {}
+}
+
 interface PlayersState {
   players: Player[]
   loading: boolean
@@ -13,13 +30,14 @@ interface PlayersState {
 }
 
 export const usePlayersStore = create<PlayersState>()((set, get) => ({
-  players: [],
+  players: loadCache(),
   loading: true,
 
   fetchPlayers: async () => {
     try {
       const players = await apiFetch<Player[]>('/players')
       set({ players, loading: false })
+      saveCache(players)
     } catch {
       set({ loading: false })
     }
@@ -38,27 +56,32 @@ export const usePlayersStore = create<PlayersState>()((set, get) => ({
       entrada: data.entrada ?? 70,
       vision:  data.vision  ?? 70,
     }
-    set(state => ({ players: [...state.players, player] }))
+    const updated = [...get().players, player]
+    set({ players: updated })
+    saveCache(updated)
     await apiFetch('/players', { method: 'POST', body: JSON.stringify(player) })
   },
 
   updatePlayer: async (id, updates) => {
-    set(state => ({
-      players: state.players.map(p => p.id === id ? { ...p, ...updates } : p),
-    }))
-    const current = get().players.find(p => p.id === id)
+    const updated = get().players.map(p => p.id === id ? { ...p, ...updates } : p)
+    set({ players: updated })
+    saveCache(updated)
+    const current = updated.find(p => p.id === id)
     if (current) {
       await apiFetch(`/players/${id}`, { method: 'PUT', body: JSON.stringify(current) })
     }
   },
 
   deletePlayer: async (id) => {
-    set(state => ({ players: state.players.filter(p => p.id !== id) }))
+    const updated = get().players.filter(p => p.id !== id)
+    set({ players: updated })
+    saveCache(updated)
     await apiFetch(`/players/${id}`, { method: 'DELETE' })
   },
 
   importPlayers: async (incoming) => {
     set({ players: incoming })
+    saveCache(incoming)
     await apiFetch('/players/import', { method: 'POST', body: JSON.stringify(incoming) })
   },
 }))

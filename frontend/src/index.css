@@ -180,6 +180,52 @@ body {
   animation: elite-pulse 3s ease-in-out infinite;
 }
 
+/* ── Selected card effects ───────────────────────────────────── */
+@keyframes card-selected-border-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+@keyframes card-selected-glow {
+  0%, 100% { filter: drop-shadow(0 0 5px rgba(79, 127, 255, 0.4)); }
+  50%       { filter: drop-shadow(0 0 14px rgba(99, 120, 255, 0.75)) drop-shadow(0 0 24px rgba(79, 127, 255, 0.25)); }
+}
+
+@keyframes card-deselect-bw {
+  0%   { filter: grayscale(0) brightness(1); }
+  8%   { filter: grayscale(1) brightness(0.75); }
+  45%  { filter: grayscale(1) brightness(0.75); }
+  100% { filter: grayscale(0) brightness(1); }
+}
+
+.card-deselect-bw {
+  animation: card-deselect-bw 0.8s ease-in-out forwards;
+}
+
+@keyframes card-light-burst {
+  from { offset-distance: 0%; }
+  to   { offset-distance: 30%; }
+}
+
+@keyframes card-light-loop {
+  from { offset-distance: 0%; }
+  to   { offset-distance: 100%; }
+}
+
+.card-selected-border {
+  animation: card-selected-border-pulse 2.5s ease-in-out infinite;
+}
+
+.card-selected-glow {
+  animation: card-selected-glow 2.5s ease-in-out infinite;
+}
+
+.card-light-dot {
+  animation:
+    card-light-loop 3.5s linear infinite,
+    card-light-burst 1.05s cubic-bezier(0.2, 0.6, 0.8, 0.8);
+}
+
 @keyframes elite-sparkle {
   0%   { opacity: 0;    transform: translateY(0px)   scale(1);   }
   20%  { opacity: 0.65; }

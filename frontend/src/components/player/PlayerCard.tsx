@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 import { CheckCircle } from 'lucide-react'
 import type { Player } from '@/types'
 import {
@@ -75,11 +75,29 @@ export function PlayerCard({
   className,
 }: Props) {
   const cardRef = useRef<HTMLDivElement>(null)
+  const prevSelectedRef = useRef(selected)
+  const [justDeselected, setJustDeselected] = useState(false)
+
+  useEffect(() => {
+    const wasSelected = prevSelectedRef.current
+    prevSelectedRef.current = selected
+    if (wasSelected && !selected) {
+      setJustDeselected(true)
+      const t = setTimeout(() => setJustDeselected(false), 800)
+      return () => clearTimeout(t)
+    }
+  }, [selected])
   const textColor = getCardTextColor(player.rating)
   const accentColor = getCardAccentColor(player.rating)
   const gradeClass = getCardGradeClass(player.rating)
   const glow = getGradeGlow(player.rating)
   const s = sizes[size]
+
+  // Path SVG que traza el contorno redondeado de la carta (para la lucecita viajera)
+  const borderDims = { sm: [114, 164], md: [144, 204], lg: [184, 264] } as const
+  const [bw, bh] = borderDims[size]
+  const br = 18
+  const lightPath = `M ${br},0 H ${bw - br} Q ${bw},0 ${bw},${br} V ${bh - br} Q ${bw},${bh} ${bw - br},${bh} H ${br} Q 0,${bh} 0,${bh - br} V ${br} Q 0,0 ${br},0 Z`
 
   // Con foto el fondo efectivo siempre es oscuro (por los gradientes),
   // así que forzamos blanco + sombra para que se lea sobre cualquier remera.
@@ -119,13 +137,52 @@ export function PlayerCard({
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       onClick={handleClick}
-      className={clsx('relative cursor-pointer select-none flex-shrink-0', s.card, className, player.rating >= 95 && 'elite-glow')}
+      className={clsx(
+        'relative cursor-pointer select-none flex-shrink-0',
+        s.card, className,
+        player.rating >= 95 && !selected && 'elite-glow',
+        selected && 'card-selected-glow',
+      )}
     >
+      {/* Borde premium cuando está seleccionada */}
+      {selected && (
+        <div
+          className="absolute card-selected-border pointer-events-none rounded-[18px]"
+          style={{
+            inset: '-2px',
+            background: 'linear-gradient(135deg, rgba(99,120,255,0.9) 0%, rgba(167,139,250,0.8) 50%, rgba(79,127,255,0.6) 100%)',
+            zIndex: 0,
+          }}
+        />
+      )}
+      {/* Lucecita viajera por el marco */}
+      {selected && (
+        <div style={{ position: 'absolute', inset: '-2px', zIndex: 1, pointerEvents: 'none' }}>
+          <div
+            className="card-light-dot"
+            style={{
+              position: 'absolute',
+              width: '36px',
+              height: '10px',
+              borderRadius: '50%',
+              background: 'radial-gradient(ellipse at center, rgba(240,235,255,0.96) 0%, rgba(167,139,250,0.55) 45%, transparent 72%)',
+              filter: 'blur(2.5px)',
+              offsetPath: `path("${lightPath}")`,
+              offsetAnchor: '18px 5px',
+              offsetDistance: '0%',
+            } as React.CSSProperties}
+          />
+        </div>
+      )}
+
       {/* Card body */}
       <div
-        className={clsx('relative w-full h-full rounded-2xl overflow-hidden', gradeClass)}
+        className={clsx('relative w-full h-full rounded-2xl overflow-hidden', gradeClass, justDeselected && 'card-deselect-bw')}
         style={{
-          boxShadow: selected ? '0 0 0 2.5px #4F7FFF, ' + glow : glow,
+          boxShadow: selected
+            ? '0 0 0 2px #4F7FFF, 0 0 20px rgba(79,127,255,0.55), ' + glow
+            : glow,
+          zIndex: 1,
         }}
       >
         {/* Position colour strip */}
@@ -137,14 +194,48 @@ export function PlayerCard({
         {/* Shine overlay */}
         <div className="absolute inset-0 card-shine pointer-events-none z-10" />
 
-        {/* Selected overlay */}
+        {/* Overlay tenue mientras está seleccionada */}
         {selected && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-brand/20 z-20 rounded-2xl"
+            className="absolute inset-0 bg-brand/15 z-20 rounded-2xl pointer-events-none"
           />
         )}
+
+        {/* Flash de deselección */}
+        <AnimatePresence>
+          {justDeselected && (
+            <motion.div
+              key="deselect-flash"
+              initial={{ opacity: 0.85 }}
+              animate={{ opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.55, ease: 'easeOut' }}
+              className="absolute inset-0 z-30 rounded-2xl pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse at 50% 35%, rgba(210,210,225,0.9) 0%, rgba(140,140,160,0.55) 40%, transparent 70%)',
+              }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Flash de selección — destello holográfico al tocar */}
+        <AnimatePresence>
+          {selected && (
+            <motion.div
+              key="select-flash"
+              initial={{ opacity: 0.85 }}
+              animate={{ opacity: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.55, ease: 'easeOut' }}
+              className="absolute inset-0 z-30 rounded-2xl pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse at 50% 25%, rgba(255,255,255,0.95) 0%, rgba(180,190,255,0.6) 40%, transparent 70%)',
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Top section */}
         <div className="absolute top-2 left-2 flex flex-col items-start z-30">

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { ArrowLeft, RefreshCw, Share2, AlertTriangle, ArrowLeftRight } from 'lucide-react'
+import { ArrowLeft, RefreshCw, Play, AlertTriangle, ArrowLeftRight } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { PlayerCard } from '@/components/player/PlayerCard'
 import { Button } from '@/components/ui/Button'
@@ -9,7 +9,9 @@ import { usePlayersStore } from '@/store/usePlayersStore'
 import { useMatchStore } from '@/store/useMatchStore'
 import { generateOptimalTeams, shuffleArray } from '@/utils/teamAlgorithm'
 import { getBalanceLabel } from '@/utils/cardUtils'
-import type { GeneratedTeams, Player } from '@/types'
+import { MatchTimerSheet } from '@/components/match/MatchTimerSheet'
+import { MatchEndModal } from '@/components/match/MatchEndModal'
+import type { GeneratedTeams, Player, Match } from '@/types'
 
 type Stage = 'idle' | 'shuffling' | 'sorting' | 'revealed'
 type SwapSelection = { player: Player; team: 'A' | 'B' } | null
@@ -17,12 +19,24 @@ type SwapSelection = { player: Player; team: 'A' | 'B' } | null
 export default function GenerateTeamsPage() {
   const navigate = useNavigate()
   const { players } = usePlayersStore()
-  const { selectedPlayerIds, setGeneratedTeams, clearSelection } = useMatchStore()
+  const { selectedPlayerIds, setGeneratedTeams, clearSelection, saveMatch } = useMatchStore()
   const [stage, setStage] = useState<Stage>('idle')
   const [teams, setTeams] = useState<GeneratedTeams | null>(null)
   const [shuffled, setShuffled] = useState<typeof players>([])
   const [counter, setCounter] = useState(0)
   const [swapSelection, setSwapSelection] = useState<SwapSelection>(null)
+  const [showTimer, setShowTimer] = useState(false)
+  const [showEndModal, setShowEndModal] = useState(false)
+
+  const handleMatchEnd = useCallback(() => {
+    setShowTimer(false)
+    setShowEndModal(true)
+  }, [])
+
+  async function handleSaveMatch(match: Match) {
+    await saveMatch(match)
+    navigate('/history')
+  }
 
   const selected = players.filter(p => selectedPlayerIds.has(p.id))
 
@@ -282,17 +296,29 @@ export default function GenerateTeamsPage() {
                 </Button>
                 <Button
                   variant="primary"
-                  icon={<Share2 size={14} />}
-                  onClick={() => {}}
+                  icon={<Play size={14} />}
+                  onClick={() => setShowTimer(true)}
                   className="flex-1"
                 >
-                  Compartir
+                  Comenzar partido
                 </Button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+
+      <MatchTimerSheet open={showTimer} onEnd={handleMatchEnd} />
+
+      {teams && (
+        <MatchEndModal
+          open={showEndModal}
+          teamA={teams.teamA}
+          teamB={teams.teamB}
+          onSave={handleSaveMatch}
+          onClose={() => setShowEndModal(false)}
+        />
+      )}
     </div>
   )
 }

@@ -6,7 +6,6 @@ import PlayersPage from '@/pages/PlayersPage'
 import CreateMatchPage from '@/pages/CreateMatchPage'
 import GenerateTeamsPage from '@/pages/GenerateTeamsPage'
 import HistoryPage from '@/pages/HistoryPage'
-
 export default function App() {
   return (
     <Routes>
